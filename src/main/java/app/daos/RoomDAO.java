@@ -1,12 +1,15 @@
 package app.daos;
 
+import app.entities.Hotel;
 import app.entities.Room;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RoomDAO implements IDAO<Room,Integer>{
     private EntityManagerFactory emf;
@@ -62,5 +65,15 @@ public class RoomDAO implements IDAO<Room,Integer>{
             }
         }
         return  false;
+    }
+
+    public List<Room> getRoomsByHotelId(int hotelId) {
+        try(EntityManager em = emf.createEntityManager()) {
+            List<Room> rooms = em.createQuery("SELECT r FROM Room r WHERE r.hotel.id = :hotelId", Room.class)
+                    .setParameter("hotelId", hotelId)
+                    .getResultList();
+
+            return rooms;
+        }
     }
 }

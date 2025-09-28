@@ -68,12 +68,14 @@ public class HotelDAO implements IDAO<Hotel,Integer> {
        return false;
     }
 
+
     public void addRoom(Hotel hotel, Room room) {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             Hotel specifikHotel = em.find(Hotel.class, hotel.getId());
             if (specifikHotel != null) {
                 specifikHotel.addRoom(room);
+                //update the hotel in the database
                 em.merge(specifikHotel);
             }
             em.getTransaction().commit();
@@ -83,11 +85,17 @@ public class HotelDAO implements IDAO<Hotel,Integer> {
     public void removeRoom(Hotel hotel, Room room) {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
+
+            // find hotel and room in the database
             Hotel specifikHotel = em.find(Hotel.class, hotel.getId());
             Room specifikRoom = em.find(Room.class, room.getId());
+
+            // check if they exist
             if (specifikHotel != null && specifikRoom != null) {
+                // remove room from the hotel list
                 specifikHotel.getRooms().remove(specifikRoom);
-                specifikRoom.setHotel(null);
+
+                //update the hotel in the db
                 em.merge(specifikHotel);
             }
             em.getTransaction().commit();
@@ -96,11 +104,17 @@ public class HotelDAO implements IDAO<Hotel,Integer> {
 
     public Set<Room> getRoomsForHotel(Hotel hotel) {
         try (EntityManager em = emf.createEntityManager()) {
+            // find the hotel in the db
             Hotel specifikHotel = em.find(Hotel.class, hotel.getId());
+
+            // if the hotel exists, then return the list of rooms
             if (specifikHotel != null) {
                 return specifikHotel.getRooms();
             }
+
+            // if the hotel not exists, return an empty list
             return new HashSet<>();
         }
     }
+
 }

@@ -3,11 +3,15 @@ package app.controllers;
 
 import app.daos.HotelDAO;
 import app.dtos.HotelDTO;
+import app.dtos.RoomDTO;
 import app.entities.Hotel;
+import app.entities.Room;
+import app.exceptions.ApiException;
 import io.javalin.http.Context;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class HotelController {
 
@@ -55,21 +59,21 @@ public class HotelController {
     }
 
     public void create(Context ctx) {
-        // reading the request body convert to dto
-        HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
+            // reading the request body convert to dto
+            HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
 
-        // converts HotelDto to hotel entity
-        Hotel hotel = new Hotel(hotelDTO);
+            // converts HotelDto to hotel entity
+            Hotel hotel = new Hotel(hotelDTO);
 
-        // save the hotel in the database
-        hotelDAO.create(hotel);
+            // save the hotel in the database
+            hotelDAO.create(hotel);
 
-        // making HotelDto object for the saved hotel
-        HotelDTO dto = new HotelDTO(hotel);
+            // making HotelDto object for the saved hotel
+            HotelDTO dto = new HotelDTO(hotel);
+            // returns a status success and returning the dto as JSON
+            // created 201
+            ctx.status(201).json(dto);
 
-        // returns a status success and returning the dto as JSON
-        // created 201
-        ctx.status(201).json(dto);
     }
 
     public void update(Context ctx) {
@@ -111,6 +115,35 @@ public class HotelController {
         } else {
             ctx.status(404).result("Hotel not found");
         }
+    }
+
+    // get all rooms for a specific hotel
+    public void getRoomsForHotel(Context ctx) {
+        // read id from url and convert
+        int hotelId = Integer.parseInt(ctx.pathParam("id"));
+
+        // get the hotel from the dao
+        Hotel hotel = hotelDAO.getById(hotelId);
+
+        // if the hotel is not existing
+        if (hotel == null) {
+            ctx.status(404).result("Hotel not found");
+            return;
+        }
+
+        // get all rooms for a hotel
+        Set<Room> rooms = hotelDAO.getRoomsForHotel(hotel);
+
+        // convert room to roomDTO object
+        List<RoomDTO> roomDTOs = new ArrayList<>();
+        for (Room room : rooms) {
+            RoomDTO dto = new RoomDTO(room);
+            // add to list
+            roomDTOs.add(dto);
+        }
+
+        // Return list as JSON
+        ctx.json(roomDTOs);
     }
 
 }
