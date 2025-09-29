@@ -1,13 +1,13 @@
 package app.exceptions;
 
-public class ApiException extends RuntimeException {
-    private int code;
+public class ApiException extends Exception {
+    private final int statusCode;
 
-    public ApiException(int code, String msg){
+    public ApiException(int statusCode, String msg){
         super(msg);
-        this.code = code;
+        this.statusCode = statusCode;
     }
-    public int getCode(){
-        return code;
+    public int getStatusCode(){
+        return statusCode;
     }
 }

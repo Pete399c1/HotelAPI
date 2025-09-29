@@ -49,26 +49,43 @@ public class RoomController {
     }
 
     public void create(Context ctx) {
-        RoomDTO roomDTO = ctx.bodyAsClass(RoomDTO.class);
-        Room room = new Room(roomDTO);
+        try {
+            RoomDTO roomDTO = ctx.bodyAsClass(RoomDTO.class);
 
-        roomDAO.create(room);
+            if (roomDTO.getNumber() <= 0 || roomDTO.getPrice() <= 0 || roomDTO.getRoomType() == null) {
+                throw new IllegalStateException("Room number, price and type cannot be empty or zero");
+            }
 
-        RoomDTO dto = new RoomDTO(room);
-        ctx.status(201).json(dto);
+            Room room = new Room(roomDTO);
+            roomDAO.create(room);
+
+            RoomDTO dto = new RoomDTO(room);
+            ctx.status(201).json(dto);
+        }catch (Exception e){
+            throw new IllegalStateException("Invalid JSON for room: " + e.getMessage());
+        }
     }
 
     public void update(Context ctx) {
-        int id = Integer.parseInt(ctx.pathParam("id"));
-        RoomDTO roomDTO = ctx.bodyAsClass(RoomDTO.class);
+        try {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            RoomDTO roomDTO = ctx.bodyAsClass(RoomDTO.class);
 
-        Room room = new Room(roomDTO);
-        room.setId(id);
+            // Tjek felter
+            if (roomDTO.getNumber() <= 0 || roomDTO.getPrice() <= 0 || roomDTO.getRoomType() == null) {
+                throw new IllegalStateException("Room number, price and type cannot be empty or zero");
+            }
 
-        Room updated = roomDAO.update(room);
-        RoomDTO dto = new RoomDTO(updated);
+            Room room = new Room(roomDTO);
+            room.setId(id);
 
-        ctx.json(dto);
+            Room updated = roomDAO.update(room);
+            RoomDTO dto = new RoomDTO(updated);
+
+            ctx.json(dto);
+        }catch (Exception e){
+            throw new IllegalStateException("Invalid JSON for room: " + e.getMessage());
+        }
     }
 
     public void delete(Context ctx) {

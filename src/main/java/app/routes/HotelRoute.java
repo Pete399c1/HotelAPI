@@ -1,20 +1,29 @@
 package app.routes;
 
+
 import app.config.HibernateConfig;
 import app.controllers.HotelController;
-import io.javalin.Javalin;
-import jakarta.persistence.EntityManager;
+import app.daos.HotelDAO;
+import io.javalin.apibuilder.EndpointGroup;
 import jakarta.persistence.EntityManagerFactory;
 
+import static io.javalin.apibuilder.ApiBuilder.*;
 public class HotelRoute {
-    public static  void addRoutes(Javalin app){
-        EntityManagerFactory emf = HibernateConfig.getEntityManagerFactory();
-        HotelController hotelController = new HotelController(emf);
+    private final HotelController hotelController;
 
-        app.get("/hotels", hotelController::getAll);
-        app.get("/hotels/{id}", hotelController::getById);
-        app.post("/hotels", hotelController::create);
-        app.put("/hotels/{id}", hotelController::update);
-        app.delete("/hotels/{id}", hotelController::delete);
+    // dependency injections
+    public HotelRoute(EntityManagerFactory emf) {
+        this.hotelController = new HotelController(emf);
+    }
+
+    protected EndpointGroup getRoutes() {
+        return () ->{
+            get("/", hotelController::getAll);
+            get("/{id}", hotelController::getById);
+            get("/{id}/rooms", hotelController::getRoomsForHotel);
+            post("/", hotelController::create);
+            put("/{id}", hotelController::update);
+            delete("/{id}", hotelController::delete);
+        };
     }
 }

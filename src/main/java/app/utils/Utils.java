@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class Utils {
 
-    public static String getPropertyValue(String propName, String resourceName)  {
+    public static String getPropertyValue(String propName, String resourceName) throws ApiException {
         try (InputStream is = Utils.class.getClassLoader().getResourceAsStream(resourceName)) {
             Properties prop = new Properties();
             prop.load(is);
@@ -19,8 +19,11 @@ public class Utils {
             } else {
                 throw new ApiException(500, String.format("Property %s not found in %s", propName, resourceName));
             }
-        } catch (IOException ex) {
+        } catch (IOException | ApiException ex) {
             throw new ApiException(500, String.format("Could not read property %s.", propName));
         }
     }
 }
+
+
+

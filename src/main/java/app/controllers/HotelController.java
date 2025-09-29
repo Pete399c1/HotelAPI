@@ -6,9 +6,9 @@ import app.dtos.HotelDTO;
 import app.dtos.RoomDTO;
 import app.entities.Hotel;
 import app.entities.Room;
-import app.exceptions.ApiException;
 import io.javalin.http.Context;
 import jakarta.persistence.EntityManagerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -61,8 +61,13 @@ public class HotelController {
     }
 
     public void create(Context ctx) {
+        try {
             // reading the request body convert to dto
             HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
+
+            if (hotelDTO.getName() == null || hotelDTO.getAddress() == null || hotelDTO.getHotelType() == null) {
+                throw new IllegalStateException("Hotel name, address and type cannot be empty");
+            }
 
             // converts HotelDto to hotel entity so that it can be saved in db
             Hotel hotel = new Hotel(hotelDTO);
@@ -75,32 +80,41 @@ public class HotelController {
             // returns a status success and returning the dto as JSON
             // http status created
             ctx.status(201).json(dto);
-
+        }catch (Exception e){
+            throw new IllegalStateException("Invalid JSON for hotel: " + e.getMessage());
+        }
     }
 
     public void update(Context ctx) {
+        try {
+            // read id for the url and convert to int
+            int id = Integer.parseInt(ctx.pathParam("id"));
 
-        // read id for the url and convert to int
-        int id = Integer.parseInt(ctx.pathParam("id"));
+            // read the request body and change to a dto.
+            // take the raw JSON text and use a JSON parser to translate directly to a java object
+            HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
 
-        // read the request body and change to a dto.
-        // take the raw JSON text and use a JSON parser to translate directly to a java object
-        HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
+            if (hotelDTO.getName() == null || hotelDTO.getAddress() == null || hotelDTO.getHotelType() == null) {
+                throw new IllegalStateException("Hotel name, address and type cannot be empty");
+            }
 
-        // convert hotelDto to a hotel object
-        Hotel hotel = new Hotel(hotelDTO);
+            // convert hotelDto to a hotel object
+            Hotel hotel = new Hotel(hotelDTO);
 
-        // set the id from the url so that it will update the right hotel
-        hotel.setId(id);
+            // set the id from the url so that it will update the right hotel
+            hotel.setId(id);
 
-        // update the hotel in the database
-        Hotel updated = hotelDAO.update(hotel);
+            // update the hotel in the database
+            Hotel updated = hotelDAO.update(hotel);
 
-        // make a hotelDto from the updated hotel
-        HotelDTO dto = new HotelDTO(updated);
+            // make a hotelDto from the updated hotel
+            HotelDTO dto = new HotelDTO(updated);
 
-        // send dto as JSON to postMan
-        ctx.json(dto);
+            // send dto as JSON to postMan
+            ctx.json(dto);
+        }catch (Exception e){
+            throw new IllegalStateException("Invalid JSON for Hotel: " + e.getMessage());
+        }
     }
 
     public void delete(Context ctx) {
