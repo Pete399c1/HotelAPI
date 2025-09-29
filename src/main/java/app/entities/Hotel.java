@@ -31,7 +31,8 @@ public class Hotel {
     @Column(name = "hotel_type")
     private HotelType hotelType;
 
-    @OneToMany(mappedBy = "hotel",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    // lazy get the relation when I use it Lazy / Eager get relation right away do also get all rooms from db
+    @OneToMany(mappedBy = "hotel",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Room> rooms = new HashSet<>();
 
     // mapping

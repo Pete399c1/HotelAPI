@@ -31,11 +31,13 @@ public class HotelController {
         // foreach that goes through all the hotels
         for (Hotel hotel : hotels) {
             // converting hotel to hotelDto
+            // take my list of entities and from db and make a dto version that can be sent
             HotelDTO hotelDTO = new HotelDTO(hotel);
             // adding it to the list of empty hotelDto objects
             hotelDTOs.add(hotelDTO);
         }
-        // return the DtoList as JSON to the client
+
+        // send the DtoList as JSON to the client when requested
         ctx.json(hotelDTOs);
     }
 
@@ -53,7 +55,7 @@ public class HotelController {
             // return dto as JSON
             ctx.json(hotelDTO);
         } else {
-            // else if the hotel is not found, return 404
+            // http status not found
             ctx.status(404).result("Hotel not found");
         }
     }
@@ -62,7 +64,7 @@ public class HotelController {
             // reading the request body convert to dto
             HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
 
-            // converts HotelDto to hotel entity
+            // converts HotelDto to hotel entity so that it can be saved in db
             Hotel hotel = new Hotel(hotelDTO);
 
             // save the hotel in the database
@@ -71,7 +73,7 @@ public class HotelController {
             // making HotelDto object for the saved hotel
             HotelDTO dto = new HotelDTO(hotel);
             // returns a status success and returning the dto as JSON
-            // created 201
+            // http status created
             ctx.status(201).json(dto);
 
     }
@@ -81,7 +83,8 @@ public class HotelController {
         // read id for the url and convert to int
         int id = Integer.parseInt(ctx.pathParam("id"));
 
-        // read the request body and change to a dto
+        // read the request body and change to a dto.
+        // take the raw JSON text and use a JSON parser to translate directly to a java object
         HotelDTO hotelDTO = ctx.bodyAsClass(HotelDTO.class);
 
         // convert hotelDto to a hotel object
@@ -96,7 +99,7 @@ public class HotelController {
         // make a hotelDto from the updated hotel
         HotelDTO dto = new HotelDTO(updated);
 
-        // return dto as JSON
+        // send dto as JSON to postMan
         ctx.json(dto);
     }
 
@@ -110,9 +113,10 @@ public class HotelController {
 
 
         if (deleted) {
-            // success no content found
+            // http status no content
             ctx.status(204);
         } else {
+            // http status not found
             ctx.status(404).result("Hotel not found");
         }
     }
@@ -127,6 +131,7 @@ public class HotelController {
 
         // if the hotel is not existing
         if (hotel == null) {
+            // http status not found
             ctx.status(404).result("Hotel not found");
             return;
         }
@@ -136,13 +141,15 @@ public class HotelController {
 
         // convert room to roomDTO object
         List<RoomDTO> roomDTOs = new ArrayList<>();
+        // running through a list of rooms for a hotel
         for (Room room : rooms) {
+            // change the rooms to dto objects.
             RoomDTO dto = new RoomDTO(room);
             // add to list
             roomDTOs.add(dto);
         }
 
-        // Return list as JSON
+        // send the list as JSON
         ctx.json(roomDTOs);
     }
 

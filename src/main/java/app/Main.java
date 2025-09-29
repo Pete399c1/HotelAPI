@@ -13,15 +13,7 @@ public class Main {
 
         Routes.addRoutes(app);
 
-        // Part 3 Error handling
-        app.exception(IllegalStateException.class, (e, ctx) -> {
-            ctx.status(400).result("Invalid request: " + e.getMessage());
-        });
-
-        app.exception(Exception.class, (e, ctx) -> {
-            ctx.status(500).result("Something went wrong: " + e.getMessage());
-        });
-
+        // event listener and close every db connection
         app.events(event -> {
             event.serverStopping(() -> {
                 emf.close();

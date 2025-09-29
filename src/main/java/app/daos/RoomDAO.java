@@ -67,6 +67,7 @@ public class RoomDAO implements IDAO<Room,Integer>{
         return  false;
     }
 
+    /*
     public List<Room> getRoomsByHotelId(int hotelId) {
         try(EntityManager em = emf.createEntityManager()) {
             List<Room> rooms = em.createQuery("SELECT r FROM Room r WHERE r.hotel.id = :hotelId", Room.class)
@@ -76,4 +77,5 @@ public class RoomDAO implements IDAO<Room,Integer>{
             return rooms;
         }
     }
+     */
 }
