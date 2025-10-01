@@ -30,6 +30,7 @@ public class HibernateConfig {
         return emf;
     }
 
+    // for tests
     public static EntityManagerFactory getEntityManagerFactoryForTest() {
         if (emfTest == null){
             setTest(true);
@@ -45,29 +46,64 @@ public class HibernateConfig {
     }
 
     private static EntityManagerFactory createEMF(boolean forTest, String DBName) {
+        // Parameters:
+        // - forTest: a boolean flag that says if we are running a test environment.
+        // - DBName: the name of the database to connect to.
+        // Returns an EntityManagerFactory, which is used to manage database connections and entities.
+
         try {
+            // Creates a new Hibernate Configuration object.
+            // This object holds all the settings Hibernate needs to connect to the database.
             Configuration configuration = new Configuration();
+
+            // Creates a Properties object to hold key-value pairs for Hibernate configuration.
             Properties props = new Properties();
-            // Set the properties
+
+            // Calls a helper method to set the basic Hibernate properties
+            // like dialect, driver class, show_sql, //hbm2ddl.auto, etc.
             setBaseProperties(props);
+
+            // If running tests, replace or add test-specific properties.
+            // Example: use an in-memory or test container database, and auto-create/drop tables.
             if (forTest) {
                 props = setTestProperties(props);
+
+                // If the DEPLOYED environment variable exists, use production/deployed database properties.
+                // This usually comes from environment variables like DB_USERNAME, DB_PASSWORD, CONNECTION_STR.
             } else if (System.getenv("DEPLOYED") != null) {
                 setDeployedProperties(props, DBName);
             } else {
+                // Otherwise, use development database settings (local DB with default username/password).
                 props = setDevProperties(props, DBName);
             }
+
+            // Apply all the properties to the Hibernate Configuration object.
             configuration.setProperties(props);
+
+            // Registers all annotated entity classes (e.g., Hotel.class, Room.class) with Hibernate.
+            // Hibernate needs to know which classes represent database tables.
             getAnnotationConfiguration(configuration);
 
+            // Builds a ServiceRegistry, which is Hibernate’s internal object
+            // that knows about the environment, database connections, and other services.
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
                     .build();
+
+            // Builds a SessionFactory from the configuration and service registry.
+            // The SessionFactory is the main object used by Hibernate to create database sessions.
             SessionFactory sf = configuration.buildSessionFactory(serviceRegistry);
+
+            // Converts the Hibernate SessionFactory into a JPA EntityManagerFactory.
+            // This allows the rest of your app to use JPA (standard API) instead of Hibernate-specific code.
             EntityManagerFactory emf = sf.unwrap(EntityManagerFactory.class);
+
+            // Returns the EntityManagerFactory to the caller, ready to use.
             return emf;
         }
         catch (Throwable ex) {
+            // If anything goes wrong (//database unreachable, wrong config, etc.), print the error.
+            // Throws an ExceptionInInitializerError, which stops the application from starting.
             System.err.println("Initial SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);
         }
