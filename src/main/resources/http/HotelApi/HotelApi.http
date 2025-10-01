@@ -1,0 +1,33 @@
+GET http://localhost:7070/api/v1/hotels
+
+###
+GET http://localhost:7070/api/v1/hotels/1
+
+###
+GET http://localhost:7070/api/v1/hotels/1/rooms
+
+###
+POST http://localhost:7070/api/v1/hotels
+Content-Type: application/json
+
+{
+  "name": "duckInn",
+  "address": "Jutland",
+  "hotelType": "BUDGET"
+}
+
+###
+PUT http://localhost:7070/api/v1/hotels/1
+Content-Type: application/json
+
+{
+  "name": "addisonInn",
+  "address": "Copenhagen",
+  "hotelType": "LUXURY"
+}
+
+###
+DELETE http://localhost:7070/api/v1/hotels/1
+
+
+
