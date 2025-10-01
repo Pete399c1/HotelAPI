@@ -102,6 +102,7 @@ public class HotelDAO implements IDAO<Hotel,Integer> {
         }
     }
 
+
     public Set<Room> getRoomsForHotel(Hotel hotel) {
         try (EntityManager em = emf.createEntityManager()) {
             // find the hotel in the db
@@ -115,6 +116,22 @@ public class HotelDAO implements IDAO<Hotel,Integer> {
             // if the hotel not exists, return an empty list
             return new HashSet<>();
         }
+    }
+
+    // is used in the populator to create three hotels
+    public HotelDTO add(HotelDTO hotelDTO) {
+        // convert DTO to entity
+        Hotel hotel = new Hotel();
+        hotel.setName(hotelDTO.getName());
+        hotel.setAddress(hotelDTO.getAddress());
+        hotel.setHotelType(hotelDTO.getHotelType());
+
+        // Persist entity
+        create(hotel); // using the existing hotel
+
+        // sets ID back in DTO
+        hotelDTO.setId(hotel.getId());
+        return hotelDTO;
     }
 
 }

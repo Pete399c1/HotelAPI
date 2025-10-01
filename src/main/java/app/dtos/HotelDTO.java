@@ -25,6 +25,11 @@ public class HotelDTO {
         this.hotelType = hotel.getHotelType();
     }
 
-
+    // for the populator test class
+    public HotelDTO(String name, String address, HotelType hotelType) {
+        this.name = name;
+        this.address = address;
+        this.hotelType = hotelType;
+    }
 
 }

@@ -12,10 +12,12 @@ import java.util.Properties;
 
 public class HibernateConfig {
 
-    private static EntityManagerFactory emf;
-    private static EntityManagerFactory emfTest;
+
+    private static EntityManagerFactory emf; // for the developing
+    private static EntityManagerFactory emfTest; // for the tests
     private static Boolean isTest = false;
 
+    // sets if we drive test og normal
     public static void setTest(Boolean test) {
         isTest = test;
     }
@@ -24,17 +26,23 @@ public class HibernateConfig {
         return isTest;
     }
 
+    // return dev emf og test emf
     public static EntityManagerFactory getEntityManagerFactory(String DBName) {
-        if (emf == null)
-            emf = createEMF(getTest(), DBName);
-        return emf;
+        if (!getTest()) {
+            if (emf == null) {
+                emf = createEMF(false, DBName); // normal DB
+            }
+            return emf;
+        } else {
+            return getEntityManagerFactoryForTest();
+        }
     }
 
-    // for tests
+    // return emf for integration test with test containers
     public static EntityManagerFactory getEntityManagerFactoryForTest() {
         if (emfTest == null){
-            setTest(true);
-            emfTest = createEMF(getTest(), "");  // No DB needed for test
+            setTest(true); // flag for test
+            emfTest = createEMF(true,"");  // No DB needed for test
         }
         return emfTest;
     }
@@ -45,69 +53,42 @@ public class HibernateConfig {
         configuration.addAnnotatedClass(Room.class);
     }
 
+    // method to build emf for test db in docker container
     private static EntityManagerFactory createEMF(boolean forTest, String DBName) {
-        // Parameters:
-        // - forTest: a boolean flag that says if we are running a test environment.
-        // - DBName: the name of the database to connect to.
-        // Returns an EntityManagerFactory, which is used to manage database connections and entities.
-
         try {
-            // Creates a new Hibernate Configuration object.
-            // This object holds all the settings Hibernate needs to connect to the database.
             Configuration configuration = new Configuration();
-
-            // Creates a Properties object to hold key-value pairs for Hibernate configuration.
             Properties props = new Properties();
 
-            // Calls a helper method to set the basic Hibernate properties
-            // like dialect, driver class, show_sql, //hbm2ddl.auto, etc.
+            // Base properties needed for all environments
             setBaseProperties(props);
 
-            // If running tests, replace or add test-specific properties.
-            // Example: use an in-memory or test container database, and auto-create/drop tables.
             if (forTest) {
+                // adding test-specific properties
                 props = setTestProperties(props);
-
-                // If the DEPLOYED environment variable exists, use production/deployed database properties.
-                // This usually comes from environment variables like DB_USERNAME, DB_PASSWORD, CONNECTION_STR.
             } else if (System.getenv("DEPLOYED") != null) {
+                // if deployed (fx cloud), use environment variable
                 setDeployedProperties(props, DBName);
             } else {
-                // Otherwise, use development database settings (local DB with default username/password).
+                // developing environment
                 props = setDevProperties(props, DBName);
             }
 
-            // Apply all the properties to the Hibernate Configuration object.
             configuration.setProperties(props);
-
-            // Registers all annotated entity classes (e.g., Hotel.class, Room.class) with Hibernate.
-            // Hibernate needs to know which classes represent database tables.
             getAnnotationConfiguration(configuration);
 
-            // Builds a ServiceRegistry, which is Hibernate’s internal object
-            // that knows about the environment, database connections, and other services.
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
                     .build();
 
-            // Builds a SessionFactory from the configuration and service registry.
-            // The SessionFactory is the main object used by Hibernate to create database sessions.
             SessionFactory sf = configuration.buildSessionFactory(serviceRegistry);
+            return sf.unwrap(EntityManagerFactory.class);
 
-            // Converts the Hibernate SessionFactory into a JPA EntityManagerFactory.
-            // This allows the rest of your app to use JPA (standard API) instead of Hibernate-specific code.
-            EntityManagerFactory emf = sf.unwrap(EntityManagerFactory.class);
-
-            // Returns the EntityManagerFactory to the caller, ready to use.
-            return emf;
-        }
-        catch (Throwable ex) {
-            // If anything goes wrong (//database unreachable, wrong config, etc.), print the error.
-            // Throws an ExceptionInInitializerError, which stops the application from starting.
+        } catch (Throwable ex) {
             System.err.println("Initial SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
+
 
     private static Properties setBaseProperties(Properties props) {
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
@@ -136,12 +117,20 @@ public class HibernateConfig {
 
     private static Properties setTestProperties(Properties props) {
         //props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        // Testcontainers driver og URL
         props.put("hibernate.connection.driver_class", "org.testcontainers.jdbc.ContainerDatabaseDriver");
         props.put("hibernate.connection.url", "jdbc:tc:postgresql:15.3-alpine3.18:///test_db");
+        //container login
         props.put("hibernate.connection.username", "postgres");
         props.put("hibernate.connection.password", "postgres");
+
+        // Autodetection of entity-classes
         props.put("hibernate.archive.autodetection", "class");
+
+        // SQL logging for test
         props.put("hibernate.show_sql", "true");
+
+        // making schema and dropping it after tests
         props.put("hibernate.hbm2ddl.auto", "create-drop"); // update for production
         return props;
     }
