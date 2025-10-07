@@ -22,12 +22,9 @@
         <javalin.version>6.3.0</javalin.version>
         <jbcrypt.version>0.4</jbcrypt.version>
 
-
     </properties>
 
     <dependencies>
-
-
 
         <!--  DB    -->
         <dependency>
@@ -150,6 +147,13 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>2.15.2</version> <!-- brug samme version som din Jackson-core -->
         </dependency>
+        <!-- To validate JWT-Tokens -->
+        <dependency>
+            <groupId>com.github.Hartmannsolution</groupId>
+            <artifactId>TokenSecurity</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
     </dependencies>
 
 

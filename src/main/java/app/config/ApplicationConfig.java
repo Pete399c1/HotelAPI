@@ -1,6 +1,6 @@
 package app.config;
 
-//import app.controllers.ExceptionController;
+
 import app.controllers.ExceptionController;
 import app.exceptions.ApiException;
 import app.exceptions.Message;
@@ -19,7 +19,6 @@ import java.util.Properties;
 // Uses Lombok to create a private no-argument constructor.
 // This means no one can create an instance of this class. It's used statically.
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-
 public class ApplicationConfig {
     // Holds our API routes globally so they can be accessed throughout the configuration.
     private static Routes routes;
@@ -33,12 +32,13 @@ public class ApplicationConfig {
     public static void configuration(JavalinConfig config) {
         // base path for all routes
         config.router.contextPath = "/api/v1";
-
         // Turns off the Javalin banner in the console when the server starts.
         config.showJavalinBanner = false;
-
         // Sets JSON as the default response content type.
         config.http.defaultContentType = "application/json";
+
+        // adding the securityRoutes to javalin routes
+
 
         // Adds all our routes to Javalin's router.
         config.router.apiBuilder(routes.getRoutes());
